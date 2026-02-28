@@ -1,0 +1,44 @@
+{
+    "name": "arraypress/wp-breadcrumbs",
+    "description": "A lightweight fluent builder for generating accessible HTML breadcrumb navigation with Schema.org microdata, ARIA attributes, and WordPress admin support.",
+    "version": "1.0.0",
+    "type": "library",
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://github.com/arraypress/wp-breadcrumbs",
+    "authors": [
+        {
+            "name": "David Sherlock",
+            "homepage": "https://arraypress.com/"
+        }
+    ],
+    "keywords": [
+        "breadcrumbs",
+        "navigation",
+        "wordpress",
+        "schema-org",
+        "aria",
+        "accessibility"
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "ArrayPress\\Breadcrumbs\\": "src/"
+        },
+        "files": [
+            "src/Functions.php"
+        ]
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "preferred-install": "dist"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "support": {
+        "issues": "https://github.com/arraypress/wp-breadcrumbs/issues",
+        "source": "https://github.com/arraypress/wp-breadcrumbs"
+    }
+}
