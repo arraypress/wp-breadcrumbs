@@ -134,8 +134,13 @@ class Breadcrumbs implements JsonSerializable, Stringable {
 	 *
 	 * @param string      $label      The display text.
 	 * @param string|null $url        Optional URL. Null for the current/active item.
-	 * @param string|null $icon       Optional icon HTML or dashicon class.
+	 * @param string|null $icon       Optional icon HTML or dashicon class. A
+	 *                                'dashicons-' class is escaped; anything else is
+	 *                                emitted as raw HTML, so never pass untrusted
+	 *                                input here.
 	 * @param array       $attributes Optional extra HTML attributes for the item.
+	 *                                Names are validated and event handlers dropped;
+	 *                                values are escaped.
 	 *
 	 * @return static Self for chaining.
 	 */
@@ -150,7 +155,8 @@ class Breadcrumbs implements JsonSerializable, Stringable {
 	 *
 	 * @param string      $label The display text.
 	 * @param string      $url   The URL for the home item.
-	 * @param string|null $icon  Optional icon HTML or dashicon class.
+	 * @param string|null $icon  Optional icon HTML or dashicon class. Raw HTML unless
+	 *                           it is a 'dashicons-' class; never pass untrusted input.
 	 *
 	 * @return static Self for chaining.
 	 */
@@ -162,7 +168,8 @@ class Breadcrumbs implements JsonSerializable, Stringable {
 	 * Add the current/active breadcrumb item (no link).
 	 *
 	 * @param string      $label The display text.
-	 * @param string|null $icon  Optional icon HTML or dashicon class.
+	 * @param string|null $icon  Optional icon HTML or dashicon class. Raw HTML unless
+	 *                           it is a 'dashicons-' class; never pass untrusted input.
 	 *
 	 * @return static Self for chaining.
 	 */
@@ -216,7 +223,8 @@ class Breadcrumbs implements JsonSerializable, Stringable {
 	/**
 	 * Set the separator between items.
 	 *
-	 * @param string $separator The separator HTML string.
+	 * @param string $separator The separator HTML string. Emitted raw so markup and
+	 *                          entities work, so never pass untrusted input here.
 	 *
 	 * @return static Self for chaining.
 	 */
@@ -545,10 +553,50 @@ class Breadcrumbs implements JsonSerializable, Stringable {
 
 		$parts = [];
 		foreach ( $attributes as $key => $value ) {
-			$parts[] = sprintf( '%s="%s"', esc_attr( $key ), esc_attr( $value ) );
+			$key = self::sanitize_attribute_name( (string) $key );
+
+			if ( '' === $key ) {
+				continue;
+			}
+
+			$parts[] = sprintf( '%s="%s"', $key, esc_attr( $value ) );
 		}
 
-		return ' ' . implode( ' ', $parts );
+		return empty( $parts ) ? '' : ' ' . implode( ' ', $parts );
+	}
+
+	/**
+	 * Validate an HTML attribute name, or reject it.
+	 *
+	 * esc_attr() escapes attribute *values*; it is the wrong tool for a name.
+	 * It leaves spaces and '=' untouched, so a key of
+	 * `x onfocus=alert(1) autofocus` renders as three separate attributes, and
+	 * it considers `onmouseover` entirely safe because nothing in it requires
+	 * escaping. Either turns caller-supplied attributes into script execution.
+	 *
+	 * Names are therefore checked against the HTML attribute-name grammar, and
+	 * event handlers refused outright.
+	 *
+	 * @param string $name Raw attribute name.
+	 *
+	 * @return string The name if acceptable, or '' to drop the attribute.
+	 */
+	protected static function sanitize_attribute_name( string $name ): string {
+		$name = strtolower( trim( $name ) );
+
+		// Letters, digits, hyphen, underscore and colon only, starting with a
+		// letter. Nothing matching this can contain whitespace, '=', '/', a
+		// quote or '>', so it cannot break out of its own attribute.
+		if ( 1 !== preg_match( '/^[a-z][a-z0-9_:-]*$/', $name ) ) {
+			return '';
+		}
+
+		// Event handlers execute script, and no breadcrumb needs one.
+		if ( str_starts_with( $name, 'on' ) ) {
+			return '';
+		}
+
+		return $name;
 	}
 
 }
