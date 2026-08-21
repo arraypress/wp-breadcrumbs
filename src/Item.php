@@ -165,5 +165,4 @@ class Item implements JsonSerializable, Stringable {
 	public function jsonSerialize(): array {
 		return $this->to_array();
 	}
-
 }

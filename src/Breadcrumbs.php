@@ -419,6 +419,10 @@ class Breadcrumbs implements JsonSerializable, Stringable {
 	 * @return void
 	 */
 	public function display(): void {
+		// render() escapes every label, URL, class and attribute it emits, and
+		// BreadcrumbsTest asserts that by parsing the result. Escaping again
+		// here would double-encode the markup it deliberately produces.
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		echo $this->render();
 	}
 
@@ -598,5 +602,4 @@ class Breadcrumbs implements JsonSerializable, Stringable {
 
 		return $name;
 	}
-
 }
